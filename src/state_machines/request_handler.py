@@ -6,65 +6,48 @@ import smach_ros.monitor_state
 from std_msgs.msg import String
 
 """
-@request    SCENE  {scene_id} {robot_id} {robot_id
-@request    MOVE   {scene_id} {robot_id} {robot_id}...
-@request    MODULE {scene_id} {robot_id} {robot_id}...
-@request    HOME   {scene_id} {robot_id} {robot_id}...
+@request    MOVE    {robot_id} {data} {data}...
+@request    MODULE  {robot_id} {data} {data}...
 """
 class RequestMonitor(smach_ros.MonitorState):
-    def __init__(self):
-        smach_ros.MonitorState.__init__(self, 'react/commander', String, self.check_command,
+    def __init__(self, robot_name):
+        smach_ros.MonitorState.__init__(self, '/task_scheduler/' + robot_name, String, self.check_command,
                                         input_keys=['command'],
-                                        output_keys=['command'])
+                                        output_keys=['action', 'command'])
         
     def check_command(self, user_data, res_msg):
         user_data.command = str(res_msg.data)
 
-        result = str(res_msg.data).split()
-
-        rospy.loginfo(f"[RequestInterpreter] I got new command for %s.", result[0])
+        rospy.loginfo("[TaskManager] I got new command. (%s)", user_data.command)
         
         return False
     
 class Request2State(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['scene', 'move', 'module', 'home', 'reset', 'min'],
-                             input_keys=['scene', 'robot_list', 'command'],
-                             output_keys=['scene', 'robot_list', 'command'])
+        smach.State.__init__(self, outcomes=['MOVE', 'MODULE'],
+                             io_keys=['action', 'command', 'data'])
         
     def execute(self, user_data):
-        full_cmd_list = str(user_data.command).split()
-
-        action = full_cmd_list[0] # MOVE or HOME or MODULE or SCENE
-        user_data.scene = full_cmd_list[1] # ex) scene_1, module_50
         
-        user_data.robot_list = full_cmd_list[2:]
+        cmd_list = str(user_data.command).split()
 
-        rospy.loginfo(f"[RequestInterpreter] SceneManager will track these robots: %s.", (user_data.robot_list))
-        rospy.loginfo(f"[RequestInterpreter] I saved state \'%s\' in SceneManager", action)
+        user_data.action = cmd_list[0] 
+        user_data.data = ' '.join(map(str, cmd_list[2:]))
         
-        if action == "MOVE":
-            return "move"
-        elif action == "HOME":
-            return "home"
-        elif action == "MODULE":
-            return "module"
-        elif action == "MIN":
-            return "min"
-        elif action == "RESET":
-            return "reset"
-        else:
-            return "scene"
+        rospy.loginfo("[TaskManager] I saved state \'%s\' in TaskManager", user_data.action)
+        
+        return user_data.action
 
 class RequestInterpreterSM(smach.StateMachine):
-    def __init__(self):
-        smach.StateMachine.__init__(self, outcomes=['scene', 'move', 'module', 'home', 'reset', 'min'],
-                                    input_keys=['scene', 'robot_list', 'command'],
-                                    output_keys=['scene', 'robot_list', 'command'])
+    def __init__(self, robot_name):
+        smach.StateMachine.__init__(self, outcomes=['MOVE','MODULE'],
+                                    input_keys=['action', 'command', 'data'],
+                                    output_keys=['action', 'command', 'data'])
         
         with self:
-            self.add('REQUEST', RequestMonitor(),
-                     transitions={'invalid': 'INTERPRET',
-                                  'valid': 'REQUEST',
-                                  'preempted':'REQUEST'})
-            self.add('INTERPRET', Request2State())
+            self.add('REQ_MONITOR', RequestMonitor(robot_name=robot_name),
+                     transitions={'invalid': 'REQ_INTERPRET',
+                                  'valid': 'REQ_MONITOR',
+                                  'preempted':'REQ_MONITOR'})
+            self.add('REQ_INTERPRET', Request2State())
+            
