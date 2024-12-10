@@ -4,14 +4,10 @@ import smach_ros
 import smach_ros.monitor_state
 from std_msgs.msg import String
 
-from collections import deque
-
-from dao.sceneModuleDao import selectModuleDataByScene # mySQL
-from dao.RobotDao import updateRobotModuleState, selectModuleStateByRobotID, updateRobotStatus # mySQL
+from dao.RobotDao import updateRobotModuleState, selectModuleStateByRobotID, resetRobotStatus # mySQL
 from dao.moduleDao import selectDegreeByState, selectStateByDegree # mySQL
 
 DISPLAY_TIME = 10.0
-IDLE = "IDLE"
 
 class ControlRequest(smach.State):
     def __init__(self):
@@ -62,8 +58,8 @@ class InControl(smach_ros.MonitorState):
             rospy.logerr("[CtrlModule] Failed to update the robot's module state.")
 
         # 로봇 상태 IDLE로 초기화
-        updateRobotStatus(robotID=robot_name, status=IDLE)
-        rospy.logwarn(f"[CtrlModule] robot {robot_name}'s status updated to {IDLE}.")
+        resetRobotStatus(robotID=robot_name)
+        rospy.logwarn(f"[MoveOne] robot {robot_name}'s status has been initialized.")
         
         return False
 

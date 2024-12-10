@@ -89,3 +89,78 @@ def selectModuleStateByRobotID(robotID: str) -> tuple:
     cnx.close()
 
     return statusInfo
+
+###########################################
+################## RESET ##################
+###########################################
+
+"""
+RESET a robot's status 
+- IDLE / MOVE / MODULE / FAIL
+"""
+def resetRobotStatus (robotID) -> bool:
+
+    cnx = connect_to_mysql(mysql_config, attempts=3)
+    cur = cnx.cursor(buffered=True)
+
+    updatedStatusInfo:list = [robotID]
+    query = (
+        "UPDATE Robot "
+        "SET status = DEFAULT "
+        "WHERE id = %s"
+    )
+    cur.execute(query, updatedStatusInfo)
+
+    cnx.commit()
+    cnx.close()
+
+    return True
+
+"""
+RESET a robot's moduleState
+"""
+def resetRobotModuleState (robotID) -> bool:
+
+    cnx = connect_to_mysql(mysql_config, attempts=3)
+    cur = cnx.cursor(buffered=True)
+
+    updatedStatusInfo = [robotID]
+    query = (
+        "UPDATE Robot "
+        "SET moduleState = DEFAULT "
+        "WHERE id = %s"
+    )
+    result = cur.execute(query, updatedStatusInfo)
+    
+    cnx.commit()
+    cnx.close()
+
+    return True
+
+"""
+RESET a robot's cmd_vel 
+"""
+def resetRobotVelocity (robotID) -> bool:
+
+    cnx = connect_to_mysql(mysql_config, attempts=3)
+    cur = cnx.cursor(buffered=True)
+
+    updatedStatusInfo:list = [robotID]
+    query = (
+        "UPDATE Robot "
+        "SET seconds = DEFAULT, linX = DEFAULT, angZ = DEFAULT "
+        "WHERE id = %s"
+    )
+    cur.execute(query, updatedStatusInfo)
+
+    cnx.commit()
+    cnx.close()
+
+    return True
+
+if __name__ == "__main__":
+
+    #reset test
+    resetRobotModuleState("tb3_0")
+    resetRobotStatus("tb3_0")
+    resetRobotVelocity("tb3_0")

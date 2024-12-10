@@ -4,9 +4,7 @@ import smach_ros
 import smach_ros.monitor_state
 from std_msgs.msg import String
 
-from dao.RobotDao import updateRobotVelocity, updateRobotStatus # mySQL
-
-IDLE = "IDLE"
+from dao.RobotDao import updateRobotVelocity, updateRobotStatus, resetRobotStatus # mySQL
 
 class MoveRequest(smach.State):
     def __init__(self):
@@ -42,8 +40,8 @@ class OnTheMove(smach_ros.MonitorState):
         rospy.loginfo(f"[MoveOne] Robot {robot_name} arrived.")
 
         # 로봇 상태 IDLE로 초기화
-        updateRobotStatus(robotID=robot_name, status=IDLE)
-        rospy.logwarn(f"[MoveOne] robot {robot_name}'s status updated to {IDLE}.")
+        resetRobotStatus(robotID=robot_name)
+        rospy.logwarn(f"[MoveOne] robot {robot_name}'s status has been initialized.")
 
         return False
        
