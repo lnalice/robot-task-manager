@@ -28,6 +28,8 @@ class OnTheMove(smach_ros.MonitorState):
                                         input_keys=['robot_name', 'data'], 
                                         output_keys=['data'])
         
+        self.robot_status_pub = rospy.Publisher('/task_scheduler/robot_status', String, queue_size=1) # -> robot monitor
+
     def update_status(self, user_data, res_msg):
         result = str(res_msg.data).split()
 
@@ -41,6 +43,7 @@ class OnTheMove(smach_ros.MonitorState):
 
         # 로봇 상태 IDLE로 초기화
         resetRobotStatus(robotID=robot_name)
+        self.robot_status_pub.publish(f"{robot_name} IDLE")
         rospy.logwarn(f"[MoveOne] robot {robot_name}'s status has been initialized.")
 
         return False

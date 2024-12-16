@@ -5,6 +5,8 @@ import smach_ros
 import smach_ros.monitor_state
 from std_msgs.msg import String
 
+from dao.RobotDao import updateRobotStatus
+
 """
 @request    MOVE    {robot_id} {data} {data}...
 @request    MODULE  {robot_id} {data} {data}...
@@ -23,9 +25,12 @@ class RequestMonitor(smach_ros.MonitorState):
         return False
     
 class Request2State(smach.State):
-    def __init__(self):
+    def __init__(self, robot_name):
         smach.State.__init__(self, outcomes=['MOVE', 'MODULE'],
                              io_keys=['action', 'command', 'data'])
+        
+        self.robot_name = robot_name
+        self.robot_status_pub = rospy.Publisher('/task_scheduler/robot_status', String, queue_size=1) # -> robot monitor
         
     def execute(self, user_data):
         
@@ -34,7 +39,10 @@ class Request2State(smach.State):
         user_data.action = cmd_list[0] 
         user_data.data = ' '.join(map(str, cmd_list[2:]))
         
-        rospy.loginfo("[TaskManager] I saved state \'%s\' in TaskManager", user_data.action)
+        # 로봇 상태 업데이트 (MOVE, MODULE)
+        updateRobotStatus(robotID=self.robot_name, status=user_data.action)
+        self.robot_status_pub.publish(f"{self.robot_name} {user_data.action}")
+        rospy.loginfo("[TaskManager] Robot stauts is updated to \'%s\'", user_data.action)
         
         return user_data.action
 
@@ -49,5 +57,4 @@ class RequestInterpreterSM(smach.StateMachine):
                      transitions={'invalid': 'REQ_INTERPRET',
                                   'valid': 'REQ_MONITOR',
                                   'preempted':'REQ_MONITOR'})
-            self.add('REQ_INTERPRET', Request2State())
-            
+            self.add('REQ_INTERPRET', Request2State(robot_name=robot_name))
