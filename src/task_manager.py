@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import signal
+import sys
 import os
 from dotenv import load_dotenv
 
@@ -11,9 +12,8 @@ from state_machines.move.move_one import MoveOneSM
 from state_machines.control.control_module import CtrlModuleSM
 
 def signal_handler(signum, frame):
-    res = input("\n[TaskManager] Ctrl-c was pressed. Do you want to exit? (y/n) ")
-    if res =='y':
-        exit(1)
+    rospy.signal_shutdown('Shutting down on Ctrl+C')
+    sys.exit(1)
 
 signal.signal(signal.SIGINT, signal_handler)
 
