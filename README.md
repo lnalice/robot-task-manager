@@ -21,11 +21,22 @@ Robot Planner는 Task Manager로부터 명령받은대로 실제 동작하도록
 
 ## 1. System
 테스트를 진행했던 서버 환경은 다음으로 구성되어 있습니다. 
+- **Hardware**: Turtlebot3 waffle 
 - **Operating System**: Ubuntu 20.04.6 LTS
 - **Kernel**: Linux 5.4.0-200-generic
 - **ROS version**: noetic
+- **Manual SBC Setup for TurtleBot3** 완료 ([Robotis Emanual 하단 'expand' 참고](https://emanual.robotis.com/docs/en/platform/turtlebot3/sbc_setup/#sbc-setup))
 
-## 2. Environment Variable
+## 2. Install packages
+실행을 위해 필요한 패키지를 설치합니다.
+```bash
+sudo apt update
+
+sudo apt install python3-pip mysql-server ros-noetic-smach ros-noetic-smach-ros
+pip3 install mysql-connector-python python-dotenv
+```
+
+## 3. Environment Variable
 dotenv를 사용해 환경변수 저장 (데이터베이스에 접근 시 필요)
 - **src/ 폴더 아래에 .env 파일을 추가해주세요**
 - 아래의 내용이 .env에 포함되어야 하고, 각 변수값은 수정해야 합니다.
@@ -36,11 +47,17 @@ DB_PASSWORD={granted_password}
 DATABASE={schema_name}
 ```
 
-## 3. ~/.bashrc
+## 4. ~/.bashrc
 ```bash
+source /opt/ros/noetic/setup.bash
+source ~/catkin_ws/devel/setup.bash
+
 export ROS_MASTER_URI=http://{server-ip}:11311
 export ROS_HOSTNAME={robot-ip}
 export TURTLEBOT3_MODEL=waffle
+export LDS_MODEL=LDS-02
+export OPENCR_MODEL=waffle_noetic
+export OPENCR_PORT=/dev/ttyACM0
 export ROBOT_NAME={robot-name}
 ```
 
