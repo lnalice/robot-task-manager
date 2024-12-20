@@ -1,5 +1,5 @@
 # Architecture
-Task Manager와 Robot Planner는 Robot Manager로 묶여 로봇 내에서 동작함
+Task Manager와 Robot Planner는 Robot Manager로 묶여 **로봇 내에서 동작함**
 
 ![architecture](./assets/architecture2.png)
 
@@ -67,8 +67,9 @@ export ROBOT_NAME={robot-name}
 ```bash
 cd ~/catkin_ws/src/
 git clone https://github.com/lnalice/robot-task-manager.git
+git clone https://github.com/lnalice/robot-planner.git
 mv robot-task-manager task_manager
-source ~/.bashrc
+source ~/.bashrc # 혹은 source ~/catkin_ws/devel/setup.bash
 
 ## robot manager 실행
 ROS_NAMESPACE=$ROBOT_NAME roslaunch task_manager robot_manager.launch multi_robot_name:=$ROBOT_NAME
@@ -102,13 +103,16 @@ ROS_NAMESPACE=$ROBOT_NAME roslaunch task_manager robot_manager.launch multi_robo
 # File Structure
 ```
 ├── CMakeLists.txt
+├── package.xml
 ├── assets
+│   ├── architecture1.png
+│   ├── architecture2.png
 │   ├── sm_graph1.png
 │   └── sm_graph2.png
 ├── launch
 │   └── robot_manager.launch
-├── package.xml
 └── src
+    ├── .env
     ├── dao
     │   ├── db
     │   │   ├── config.py
